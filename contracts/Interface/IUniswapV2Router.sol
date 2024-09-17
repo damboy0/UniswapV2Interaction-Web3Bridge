@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
-
 interface IUniswapV2Router {
-    
-    // Swapping functions
     function swapExactTokensForTokens(
         uint amountIn,
         uint amountOutMin,
@@ -21,14 +18,11 @@ interface IUniswapV2Router {
     ) external returns (uint[] memory amounts);
 
     function swapTokensForExactETH(
-        uint amountOut, 
-        uint amountInMax,
+        uint amountOut, uint amountInMax,
         address[] calldata path,
-        address to, 
-        uint deadline
+        address to, uint deadline
     ) external returns (uint[] memory amounts);
 
-    // Add liquidity
     function addLiquidity(
         address tokenA,
         address tokenB,
@@ -39,56 +33,4 @@ interface IUniswapV2Router {
         address to,
         uint deadline
     ) external returns (uint amountA, uint amountB, uint liquidity);
-
-    // Remove liquidity
-    function removeLiquidity(
-        address tokenA,
-        address tokenB,
-        uint liquidity,
-        uint amountAMin,
-        uint amountBMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountA, uint amountB);
-
-    // Remove liquidity with signature-based approval (permit)
-    function removeLiquidityWithPermit(
-        address tokenA,
-        address tokenB,
-        uint liquidity,
-        uint amountAMin,
-        uint amountBMin,
-        address to,
-        uint deadline,
-        bool approveMax, uint8 v, bytes32 r, bytes32 s
-    ) external returns (uint amountA, uint amountB);
-
-    // Adding and removing liquidity involving ETH
-    function addLiquidityETH(
-        address token,
-        uint amountTokenDesired,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline
-    ) external payable returns (uint amountToken, uint amountETH, uint liquidity);
-
-    function removeLiquidityETH(
-        address token,
-        uint liquidity,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountToken, uint amountETH);
-
-    function removeLiquidityETHWithPermit(
-        address token,
-        uint liquidity,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline,
-        bool approveMax, uint8 v, bytes32 r, bytes32 s
-    ) external returns (uint amountToken, uint amountETH);
 }
