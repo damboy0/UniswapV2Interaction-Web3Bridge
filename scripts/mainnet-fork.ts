@@ -29,9 +29,9 @@ async function main() {
 
 	const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
 
-	const EhersBalBeforeSwap = await ethers.provider.getBalance(TOKEN_HOLDER);
+	const EhersBalanceBeforeSwap = await ethers.provider.getBalance(TOKEN_HOLDER);
 	console.log({
-		"Eth balance before Swappings": ethers.formatEther(EhersBalBeforeSwap.toString()),
+		"Eth balance before Swappings": ethers.formatEther(EhersBalanceBeforeSwap.toString()),
 	});
 	const txnResponse = await ROUTER.swapTokensForExactETH(
 		amountOut,
@@ -44,9 +44,9 @@ async function main() {
 
 	await txnResponse.wait();
 
-	const EthersBalAfterSwap = await ethers.provider.getBalance(TOKEN_HOLDER);
+	const EthersBalanceAfterSwap = await ethers.provider.getBalance(TOKEN_HOLDER);
 	console.log({
-		"Eth balance after Swappings": ethers.formatEther(EthersBalAfterSwap.toString()),
+		"Eth balance after Swappings": ethers.formatEther(EthersBalanceAfterSwap.toString()),
 	});
 }
 
