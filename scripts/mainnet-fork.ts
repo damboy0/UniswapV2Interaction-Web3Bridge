@@ -1,70 +1,57 @@
 import { ethers } from "hardhat";
 const helpers = require("@nomicfoundation/hardhat-network-helpers");
 
+async function main() {
+	const ROUTER_ADDRESS = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
+	const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+	const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 
-async function main(){
+	const TOKEN_HOLDER = "0xf584F8728B874a6a5c7A8d4d387C9aae9172D621";
 
-    //next remove liquidity::
+	await helpers.impersonateAccount(TOKEN_HOLDER);
+	const impersonatedSigner = await ethers.getSigner(TOKEN_HOLDER);
 
-//     address tokenA,
-//   address tokenB,
-//   uint liquidity,
-//   uint amountAMin,
-//   uint amountBMin,
-//   address to,
-//   uint deadline
+    const ethAmount = ethers.parseEther("10"); // 10 ETH for gas fees 
+    await helpers.setBalance(TOKEN_HOLDER, ethAmount);
 
+	const amountOut = ethers.parseEther("1");
+	const amountInMax = ethers.parseUnits("20", 18);
 
-    const ROUTER_ADDRESS = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
-    const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-    const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+	const DAI_Contract = await ethers.getContractAt(
+		"IERC20",	DAI,impersonatedSigner
+	);
 
-    const TOKEN_HOLDER = "0xf584F8728B874a6a5c7A8d4d387C9aae9172D621";
+	const ROUTER = await ethers.getContractAt(
+		"IUniswapV2Router",ROUTER_ADDRESS,impersonatedSigner
+	);
+	const approveTx = await DAI_Contract.approve(ROUTER_ADDRESS, amountInMax);
+	await approveTx.wait();
 
-    await helpers.impersonateAccount(TOKEN_HOLDER);
-    const impersonatedSigner = await ethers.getSigner(TOKEN_HOLDER);
+	const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
 
-    const USDC_Contract = await ethers.getContractAt("IERC20", USDC, impersonatedSigner);
-    const DAI_Contract = await ethers.getContractAt("IERC20", DAI, impersonatedSigner); 
-    const ROUTER = await ethers.getContractAt("IUniswapV2Router", ROUTER_ADDRESS, impersonatedSigner);
-
-
-    const deadline = Math.floor(Date.now() / 1000) + (60 * 20); // 0 mins
-
-    const USDCDAI_PAIR_ADDRESS = "0xB20bd5D04BE54f870D5C0d3cA85d82b34B836405"; 
-
-
-
-    const LP_Contract = await ethers.getContractAt("IERC20", USDCDAI_PAIR_ADDRESS, impersonatedSigner);
-
-    const lpBalance = await LP_Contract.balanceOf(impersonatedSigner.address); //balance of impersonator
-    console.log("LP token balance:", ethers.formatUnits(lpBalance, 18));
-
-    const AmountUsdcMin = ethers.parseUnits("80", 6); // 80USDC
-    const AmountDaiMin = ethers.parseUnits("80", 18); // 80DAI
+	const EhersBalBeforeSwap = await ethers.provider.getBalance(TOKEN_HOLDER);
+	console.log({
+		"Eth balance before Swappings": ethers.formatEther(EhersBalBeforeSwap.toString()),
+	});
+	const txnResponse = await ROUTER.swapTokensForExactETH(
+		amountOut,
+		amountInMax,
+		[DAI, WETH],
+		TOKEN_HOLDER,
+		deadline
+	);
 
 
-    await LP_Contract.approve(ROUTER_ADDRESS, lpBalance);
+	await txnResponse.wait();
 
-    await ROUTER.removeLiquidity(
-        USDC,
-        DAI,
-        lpBalance,          // liquidity Amount to remove
-        AmountUsdcMin,      
-        AmountDaiMin,       
-        impersonatedSigner.address,  
-        deadline            
-    );
-
-
-    const usdcBalAfterRemove = await USDC_Contract.balanceOf(impersonatedSigner.address);
-    const daiBalAfterRemove = await DAI_Contract.balanceOf(impersonatedSigner.address);
-
-    console.log("USDC balance after removing liquidity:", ethers.formatUnits(usdcBalAfterRemove, 6));
-    console.log("DAI balance after removing liquidity:", ethers.formatUnits(daiBalAfterRemove, 18));
-
+	const EthersBalAfterSwap = await ethers.provider.getBalance(TOKEN_HOLDER);
+	console.log({
+		"Eth balance after Swappings": ethers.formatEther(EthersBalAfterSwap.toString()),
+	});
 }
 
+// We recommend this pattern to be able to use async/await everywhere
+// and properly handle errors.
 main().catch((error) => {
 	console.error(error);
 	process.exitCode = 1;
